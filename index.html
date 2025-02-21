@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu du Morpion </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            background-color: #fff;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .cell:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+        .cell.x {
+            color: #ff4757;
+        }
+        .cell.o {
+            color: #2ed573;
+        }
+        .cell.win {
+            background-color: #ffeaa7;
+            animation: bounce 0.5s ease-in-out;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="board" id="board">
+            <!-- Les cases du plateau seront générées dynamiquement -->
+        </div>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // Initialisation du jeu
+        const boardElement = document.getElementById('board');
+        const messageElement = document.getElementById('message');
+        let board = ['', '', '', '', '', '', '', '', '']; // Représentation du plateau
+        let currentPlayer = 'X'; // Joueur actuel
+        let gameActive = true; // État du jeu
+
+        // Fonction pour vérifier s'il y a un gagnant
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Lignes
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colonnes
+                [0, 4, 8], [2, 4, 6]             // Diagonales
+            ];
+
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return pattern; // Retourne les indices des cases gagnantes
+                }
+            }
+            return null; // Pas de gagnant
+        }
+
+        // Fonction pour vérifier si le plateau est plein
+        function isBoardFull() {
+            return board.every(cell => cell !== '');
+        }
+
+        // Fonction pour gérer le clic sur une case
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.dataset.index;
+
+            if (board[index] !== '' || !gameActive) return; // Case déjà occupée ou jeu terminé
+
+            board[index] = currentPlayer; // Mettre à jour le plateau
+            cell.textContent = currentPlayer; // Mettre à jour l'affichage
+            cell.classList.add(currentPlayer.toLowerCase()); // Ajouter une classe pour la couleur
+
+            const winPattern = checkWin();
+            if (winPattern) {
+                // Animer les cases gagnantes
+                winPattern.forEach(i => {
+                    boardElement.children[i].classList.add('win');
+                });
+                messageElement.textContent = `Félicitations, Joueur ${currentPlayer} a gagné !`;
+                messageElement.classList.add('show');
+                gameActive = false;
+            } else if (isBoardFull()) {
+                messageElement.textContent = 'Match nul !';
+                messageElement.classList.add('show');
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; // Changer de joueur
+                messageElement.textContent = `Tour du Joueur ${currentPlayer}`;
+                messageElement.classList.add('show');
+            }
+        }
+
+        // Fonction pour initialiser le plateau
+        function initializeBoard() {
+            boardElement.innerHTML = ''; // Vider le plateau
+            board = ['', '', '', '', '', '', '', '', '']; // Réinitialiser le tableau
+            gameActive = true;
+            currentPlayer = 'X';
+            messageElement.textContent = `Tour du Joueur ${currentPlayer}`;
+            messageElement.classList.remove('show');
+
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCellClick);
+                boardElement.appendChild(cell);
+            }
+        }
+
+        // Démarrer le jeu
+        initializeBoard();
+    </script>
+</body>
+</html>
